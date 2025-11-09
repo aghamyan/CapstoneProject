@@ -1,24 +1,21 @@
 // /src/services/habits.js
-const BASE_URL = "http://localhost:5001/api/habits";
+import { apiGet, apiPost, apiDelete } from "./api";
+
+const BASE = "/habits";
 
 export const getHabits = async (userId) => {
-  const res = await fetch(`${BASE_URL}?user_id=${userId}`);
-  if (!res.ok) throw new Error("Failed to fetch habits");
-  return await res.json();
+  if (!userId) throw new Error("userId is required");
+  return apiGet(`${BASE}/user/${userId}`);
 };
 
-export const createHabit = async (habit) => {
-  const res = await fetch(BASE_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(habit),
+export const createHabit = async ({ user_id, title, description, category }) => {
+  if (!user_id || !title) throw new Error("user_id and title are required");
+  return apiPost(BASE, {
+    user_id,
+    title,
+    description: description || "",
+    category: category || "",
   });
-  if (!res.ok) throw new Error("Failed to create habit");
-  return await res.json();
 };
 
-export const deleteHabit = async (id) => {
-  const res = await fetch(`${BASE_URL}/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Failed to delete habit");
-  return await res.json();
-};
+export const deleteHabit = async (id) => apiDelete(`${BASE}/${id}`);

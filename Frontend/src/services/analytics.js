@@ -1,4 +1,4 @@
-import api from "./api";
+import { apiGet } from "./api";
 
 export const getHabitProgress = (userId) =>
-  api.get(`/analytics/${userId}/habit-progress`).then(r => r.data);
+  apiGet(`/analytics/progress?userId=${userId}`);

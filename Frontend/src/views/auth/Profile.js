@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
-  const userId = localStorage.getItem("userId");
+  const stored = localStorage.getItem("user");
+  const user = stored ? JSON.parse(stored) : null;
+  const userId = user?.id;
 
   useEffect(() => {
     if (userId) {

@@ -1,26 +1,39 @@
-import db from "../models/index.js";
+import { Habit } from "../models/index.js";
 
-const Habit = db.Habit;
-
-// Get all habits
 export const getHabits = async (req, res) => {
-  const habits = await Habit.findAll();
-  res.json(habits);
+  try {
+    const habits = await Habit.findAll({ where: { user_id: req.params.userId } });
+    res.json(habits);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch habits" });
+  }
 };
 
-// Add new habit
 export const addHabit = async (req, res) => {
-  const { name, frequency, microStep, startDate, notes } = req.body;
-  const habit = await Habit.create({ name, frequency, microStep, startDate, notes });
-  res.status(201).json(habit);
+  try {
+    const { user_id, title, description, category } = req.body;
+    if (!user_id || !title) {
+      return res.status(400).json({ error: "user_id and title are required" });
+    }
+
+    const habit = await Habit.create({
+      user_id,
+      title,
+      description: description || null,
+      category: category || null,
+    });
+    res.status(201).json(habit);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create habit" });
+  }
 };
 
-// Delete habit
 export const deleteHabit = async (req, res) => {
-  const { id } = req.params;
-  const habit = await Habit.findByPk(id);
-  if (!habit) return res.status(404).json({ message: "Habit not found" });
-
-  await habit.destroy();
-  res.json({ message: "Habit deleted" });
+  try {
+    const deleted = await Habit.destroy({ where: { id: req.params.id } });
+    if (!deleted) return res.status(404).json({ error: "Habit not found" });
+    res.json({ message: "Habit deleted" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete habit" });
+  }
 };

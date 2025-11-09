@@ -7,7 +7,6 @@ import { CSpinner, useColorModes } from "@coreui/react";
 import "./scss/style.scss";
 import "./scss/examples.scss";
 
-// ✅ Fixed imports — match your new structure
 const DefaultLayout = React.lazy(() => import("./layout/DefaultLayout"));
 const Login = React.lazy(() => import("./views/auth/Login"));
 const Register = React.lazy(() => import("./views/auth/Register"));
@@ -15,7 +14,14 @@ const Page404 = React.lazy(() => import("./views/pages/Page404"));
 const Page500 = React.lazy(() => import("./views/pages/Page500"));
 
 const PrivateRoute = ({ children }) => {
-  const { user } = useContext(AuthContext);
+  const { user, loading } = useContext(AuthContext);
+  if (loading) {
+    return (
+      <div className="pt-3 text-center">
+        <CSpinner color="primary" variant="grow" />
+      </div>
+    );
+  }
   return user ? children : <Navigate to="/login" />;
 };
 
@@ -29,7 +35,7 @@ const App = () => {
     const urlParams = new URLSearchParams(window.location.href.split("?")[1]);
     const theme =
       urlParams.get("theme") &&
-      urlParams.get("theme").match(/^[A-Za-z0-9\\s]+/)[0];
+      urlParams.get("theme").match(/^[A-Za-z0-9\s]+/)[0];
     if (theme) setColorMode(theme);
     if (isColorModeSet()) return;
     setColorMode(storedTheme);
@@ -47,13 +53,11 @@ const App = () => {
             }
           >
             <Routes>
-              {/* Public */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/404" element={<Page404 />} />
               <Route path="/500" element={<Page500 />} />
 
-              {/* Protected */}
               <Route
                 path="*"
                 element={

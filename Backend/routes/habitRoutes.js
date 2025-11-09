@@ -9,6 +9,7 @@ router.get("/user/:userId", async (req, res) => {
   try {
     const habits = await Habit.findAll({
       where: { user_id: req.params.userId },
+      order: [["created_at", "ASC"]],
     });
     res.json(habits);
   } catch (err) {
@@ -20,8 +21,18 @@ router.get("/user/:userId", async (req, res) => {
 // ✅ Create new habit
 router.post("/", async (req, res) => {
   try {
-    const habit = await Habit.create(req.body);
-    res.json(habit);
+    const { user_id, title, description, category } = req.body;
+    if (!user_id || !title) {
+      return res.status(400).json({ error: "user_id and title are required" });
+    }
+
+    const habit = await Habit.create({
+      user_id,
+      title,
+      description: description || null,
+      category: category || null,
+    });
+    res.status(201).json(habit);
   } catch (err) {
     console.error("❌ Error creating habit:", err);
     res.status(500).json({ error: "Failed to create habit" });

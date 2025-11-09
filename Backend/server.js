@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import sequelize from "./sequelize.js";
+import "./models/Associations.js";
 
 // === Import Routes ===
 import userRoutes from "./routes/userRoutes.js";
@@ -13,6 +14,7 @@ import groupChallengeRoutes from "./routes/groupChallengeRoutes.js";
 import achievementRoutes from "./routes/achievementRoutes.js";
 import friendRoutes from "./routes/friendRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
+import libraryRoutes from "./routes/libraryRoutes.js";
 
 dotenv.config();
 
@@ -38,17 +40,13 @@ app.use("/api/group-challenges", groupChallengeRoutes);
 app.use("/api/achievements", achievementRoutes);
 app.use("/api/friends", friendRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/library", libraryRoutes);
 
 // === Global Error Handler ===
 app.use((err, req, res, next) => {
   console.error("🔥 Server Error:", err);
   res.status(500).json({ error: "Internal server error" });
 });
-// ✅ Sync DB
-sequelize
-  .sync()
-  .then(() => console.log("✅ Database connected"))
-  .catch((err) => console.error("❌ DB connection error:", err));
 
 // === Connect Database ===
 const connectDB = async () => {
@@ -56,8 +54,7 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log("✅ Database connection established successfully.");
 
-    // Optional: sync without dropping tables
-    await sequelize.sync({ alter: false });
+    await sequelize.sync();
 
     app.listen(PORT, () =>
       console.log(`🚀 Server running on http://localhost:${PORT}`)
@@ -67,7 +64,5 @@ const connectDB = async () => {
     process.exit(1);
   }
 };
-
-
 
 connectDB();

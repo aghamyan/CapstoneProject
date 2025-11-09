@@ -5,38 +5,41 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// attach auth user if you ever add JWT later
 api.interceptors.request.use((config) => {
   const user = localStorage.getItem("user");
   if (user) {
-    const u = JSON.parse(user);
-    // config.headers.Authorization = `Bearer ${u.token}`;
+    JSON.parse(user); // placeholder for future token usage
   }
   return config;
 });
 
 const API_BASE = "http://localhost:5001/api";
 
-export const apiGet = async (url) => {
-  const res = await fetch(`${API_BASE}${url}`);
-  if (!res.ok) throw new Error(`GET ${url} failed`);
+const handleResponse = async (res, url) => {
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Request to ${url} failed`);
+  }
   return res.json();
 };
 
-export const apiPost = async (url, body) => {
-  const res = await fetch(`${API_BASE}${url}`, {
+export const apiGet = (url) => fetch(`${API_BASE}${url}`).then((res) => handleResponse(res, url));
+
+export const apiPost = (url, body) =>
+  fetch(`${API_BASE}${url}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`POST ${url} failed`);
-  return res.json();
-};
+  }).then((res) => handleResponse(res, url));
 
-export const apiDelete = async (url) => {   // ✅ this might be missing
-  const res = await fetch(`${API_BASE}${url}`, { method: "DELETE" });
-  if (!res.ok) throw new Error(`DELETE ${url} failed`);
-  return res.json();
-};
+export const apiPut = (url, body) =>
+  fetch(`${API_BASE}${url}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then((res) => handleResponse(res, url));
+
+export const apiDelete = (url) =>
+  fetch(`${API_BASE}${url}`, { method: "DELETE" }).then((res) => handleResponse(res, url));
 
 export default api;

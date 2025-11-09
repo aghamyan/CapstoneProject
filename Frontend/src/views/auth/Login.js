@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useContext } from "react";
 import {
   CButton,
   CCard,
@@ -11,46 +11,47 @@ import {
   CInputGroup,
   CInputGroupText,
   CRow,
-} from "@coreui/react"
-import CIcon from "@coreui/icons-react"
-import { cilUser, cilLockLocked } from "@coreui/icons"
-import { Link, useNavigate } from "react-router-dom"
+} from "@coreui/react";
+import CIcon from "@coreui/icons-react";
+import { cilUser, cilLockLocked } from "@coreui/icons";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 
 const Login = () => {
-  const [form, setForm] = useState({ email: "", password: "" })
-  const [message, setMessage] = useState("")
-  const navigate = useNavigate()
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [message, setMessage] = useState("");
+  const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setMessage("")
+    e.preventDefault();
+    setMessage("");
 
     try {
       const res = await fetch("http://localhost:5001/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (!res.ok) {
-        setMessage(data.error || "Login failed")
-        return
+        setMessage(data.error || "Login failed");
+        return;
       }
 
-      // ✅ Save user and redirect
-      localStorage.setItem("user", JSON.stringify(data.user))
-      window.location.href = "/#/dashboard"
+      login(data.user);
+      navigate("/dashboard");
     } catch (err) {
-      console.error("Login error:", err)
-      setMessage("❌ Error connecting to server")
+      console.error("Login error:", err);
+      setMessage("❌ Error connecting to server");
     }
-  }
+  };
 
   return (
     <div className="bg-light min-vh-100 d-flex flex-row align-items-center">
@@ -98,7 +99,7 @@ const Login = () => {
                       </CButton>
                     </CCol>
                     <CCol xs={6} className="text-end">
-                      <Link to="/signup">Create Account</Link>
+                      <Link to="/register">Create Account</Link>
                     </CCol>
                   </CRow>
                 </CForm>
@@ -109,7 +110,7 @@ const Login = () => {
         </CRow>
       </CContainer>
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;
