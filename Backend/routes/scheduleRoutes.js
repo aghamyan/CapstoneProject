@@ -17,7 +17,7 @@ router.get("/user/:userId", async (req, res) => {
           required: false,
         },
       ],
-      order: [["day", "ASC"]],
+      order: [["day", "ASC"], ["starttime", "ASC"]],
     });
     res.json(schedules);
   } catch (err) {
@@ -30,7 +30,15 @@ router.get("/user/:userId", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const {
-      habit_id, userid, day, starttime, endtime, enddate, repeat, customdays, notes,
+      habit_id,
+      userid,
+      day,
+      starttime,
+      endtime,
+      enddate,
+      repeat,
+      customdays,
+      notes,
     } = req.body;
 
     if (!userid || !day || !starttime) {
@@ -53,6 +61,23 @@ router.post("/", async (req, res) => {
   } catch (err) {
     console.error("❌ Error creating schedule:", err);
     res.status(500).json({ error: "Failed to add schedule" });
+  }
+});
+
+// PUT update schedule
+router.put("/:id", async (req, res) => {
+  try {
+    const [updated] = await Schedule.update(req.body, {
+      where: { id: req.params.id },
+    });
+
+    if (!updated) return res.status(404).json({ error: "Schedule not found" });
+
+    const refreshed = await Schedule.findByPk(req.params.id);
+    res.json(refreshed);
+  } catch (err) {
+    console.error("❌ Error updating schedule:", err);
+    res.status(500).json({ error: "Failed to update schedule" });
   }
 });
 

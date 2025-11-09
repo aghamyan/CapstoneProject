@@ -1,39 +1,64 @@
-import express from "express";
-import { Progress, Habit } from "../models/index.js";
+import React, { useEffect, useState } from "react";
+import { CCard, CCardHeader, CCardBody, CAlert, CSpinner } from "@coreui/react";
+import { getHabitProgress } from "../../services/analytics";
 
+const ReportsAnalytics = () => {
+  const [series, setSeries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-const router = express.Router();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userId = user?.id;
 
-// Fetch per-habit progress series
-router.get("/progress", async (req, res) => {
-  const { userId } = req.query;
-  try {
-    const progressRows = await Progress.findAll({
-      where: { user_id: userId },
-      include: [{ model: Habit, attributes: ["name"] }],
-    });
+  useEffect(() => {
+    const load = async () => {
+      if (!userId) {
+        setError("Please login to view analytics");
+        setLoading(false);
+        return;
+      }
+      try {
+        const data = await getHabitProgress(userId);
+        setSeries(data);
+      } catch (err) {
+        console.error("❌ Failed to load analytics", err);
+        setError("Failed to load analytics");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Group by habit_id
-    const grouped = {};
-    for (const row of progressRows) {
-      const hid = row.habit_id;
-      if (!grouped[hid]) grouped[hid] = {
-        habitId: hid,
-        habitName: row.Habit.name,
-        points: [],
-      };
-      grouped[hid].points.push({
-        date: row.progress_date,
-        value: row.status === "done" ? 1 : 0,
-      });
-    }
+    load();
+  }, [userId]);
 
-    const result = Object.values(grouped);
-    res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch progress analytics" });
-  }
-});
+  return (
+    <CCard className="mt-4">
+      <CCardHeader>📊 Progress Analytics</CCardHeader>
+      <CCardBody>
+        {loading && (
+          <div className="text-center my-4">
+            <CSpinner color="primary" />
+          </div>
+        )}
+        {error && <CAlert color="danger">{error}</CAlert>}
+        {!loading && !error && series.length === 0 && (
+          <CAlert color="info">No progress data yet.</CAlert>
+        )}
+        {series.map((habit) => (
+          <div key={habit.habitId} className="mb-4">
+            <h5>{habit.habitName}</h5>
+            <ul className="mb-0">
+              {habit.points.map((point) => (
+                <li key={`${habit.habitId}-${point.date}`}>
+                  {point.date}: {point.value}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </CCardBody>
+    </CCard>
+  );
+};
 
-export default router;
+export default ReportsAnalytics;

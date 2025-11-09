@@ -19,7 +19,7 @@ import { getHabits, createHabit, deleteHabit } from "../../services/habits";
 const AddHabit = () => {
   const [habits, setHabits] = useState([]);
   const [newHabit, setNewHabit] = useState({
-    name: "",
+    title: "",
     description: "",
     category: "",
     target_reps: "",
@@ -30,9 +30,9 @@ const AddHabit = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?.id;
 
-  // ✅ Load habits from DB
   const loadHabits = async () => {
     try {
+      if (!userId) return;
       const data = await getHabits(userId);
       setHabits(data);
     } catch {
@@ -44,22 +44,21 @@ const AddHabit = () => {
     if (userId) loadHabits();
   }, [userId]);
 
-  // ✅ Add habit
   const handleAddHabit = async () => {
     try {
-      if (!newHabit.title) return setErr("Habit title is required");
+      if (!newHabit.title.trim()) return setErr("Habit title is required");
       setErr("");
 
       const payload = {
-        ...newHabit,
         user_id: userId,
-        target_reps: newHabit.target_reps || null,
+        title: newHabit.title,
+        description: newHabit.description,
+        category: newHabit.category,
       };
 
       const created = await createHabit(payload);
       setHabits((prev) => [...prev, created]);
 
-      // Reset form
       setNewHabit({
         title: "",
         description: "",
@@ -72,7 +71,6 @@ const AddHabit = () => {
     }
   };
 
-  // ✅ Delete habit
   const handleDelete = async (id) => {
     try {
       await deleteHabit(id);
@@ -94,7 +92,7 @@ const AddHabit = () => {
               <CFormLabel>Habit Title</CFormLabel>
               <CFormInput
                 placeholder="e.g. Morning Run"
-                value={newHabit.title || ""}
+                value={newHabit.title}
                 onChange={(e) =>
                   setNewHabit({ ...newHabit, title: e.target.value })
                 }
@@ -103,7 +101,7 @@ const AddHabit = () => {
               <CFormLabel className="mt-2">Description</CFormLabel>
               <CFormInput
                 placeholder="Short description"
-                value={newHabit.description || ""}
+                value={newHabit.description}
                 onChange={(e) =>
                   setNewHabit({ ...newHabit, description: e.target.value })
                 }
@@ -112,7 +110,7 @@ const AddHabit = () => {
               <CFormLabel className="mt-2">Category</CFormLabel>
               <CFormInput
                 placeholder="Health, Study, Fitness..."
-                value={newHabit.category || ""}
+                value={newHabit.category}
                 onChange={(e) =>
                   setNewHabit({ ...newHabit, category: e.target.value })
                 }
@@ -122,7 +120,7 @@ const AddHabit = () => {
               <CFormInput
                 type="number"
                 placeholder="e.g. 100"
-                value={newHabit.target_reps || ""}
+                value={newHabit.target_reps}
                 onChange={(e) =>
                   setNewHabit({ ...newHabit, target_reps: e.target.value })
                 }
@@ -131,7 +129,7 @@ const AddHabit = () => {
               <CFormCheck
                 className="mt-2"
                 label="Daily goal (resets every day)"
-                checked={newHabit.is_daily_goal }
+                checked={newHabit.is_daily_goal}
                 onChange={(e) =>
                   setNewHabit({ ...newHabit, is_daily_goal: e.target.checked })
                 }

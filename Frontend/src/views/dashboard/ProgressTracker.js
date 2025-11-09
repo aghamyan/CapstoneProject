@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
-  CCard, CCardBody, CCardHeader, CButton, CListGroup, CListGroupItem, CAlert
+  CCard,
+  CCardBody,
+  CCardHeader,
+  CButton,
+  CListGroup,
+  CListGroupItem,
+  CAlert,
 } from "@coreui/react";
 import { getHabits } from "../../services/habits";
 
@@ -12,7 +18,6 @@ const ProgressTracker = () => {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userId = user?.id;
 
-  // Fetch habits
   useEffect(() => {
     if (!userId) {
       setErr("Please login to track progress");
@@ -28,23 +33,23 @@ const ProgressTracker = () => {
     })();
   }, [userId]);
 
-  // Mark habit done
   const markDone = async (habitId) => {
     try {
-      const res = await fetch("http://localhost:5001/api/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: userId,
-          habit_id: habitId,
-          date: new Date().toISOString().slice(0, 10),
-          status: "done",
-        }),
-      });
+      const res = await fetch(
+        `http://localhost:5001/api/progress/${habitId}/done`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        }
+      );
       const data = await res.json();
-      setProgress((prev) => ({ ...prev, [habitId]: data.status }));
-    } catch {
-      setErr("Failed to update progress");
+      if (!res.ok) throw new Error(data.error || "Failed to update progress");
+
+      setProgress((prev) => ({ ...prev, [habitId]: data.progress.status }));
+    } catch (error) {
+      console.error("❌ Failed to update progress", error);
+      setErr(error.message || "Failed to update progress");
     }
   };
 
@@ -58,7 +63,7 @@ const ProgressTracker = () => {
           {habits.length === 0 && <CListGroupItem>No habits yet</CListGroupItem>}
           {habits.map((h) => (
             <CListGroupItem key={h.id}>
-              {h.name} — {progress[h.id] || "pending"}
+              {h.title} — {progress[h.id] || "pending"}
               <CButton
                 color="success"
                 size="sm"

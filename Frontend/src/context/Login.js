@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext";
+import { AuthContext } from "./AuthContext";
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -23,8 +23,8 @@ const Login = () => {
 
       const data = await res.json();
       if (res.ok) {
-        login(data.user); // store in context + localStorage
-        navigate("/dashboard"); // redirect
+        login(data.user);
+        navigate("/dashboard");
       } else {
         setMessage(data.error);
       }

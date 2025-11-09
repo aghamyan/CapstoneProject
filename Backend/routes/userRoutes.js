@@ -37,11 +37,25 @@ router.post("/login", async (req, res) => {
 
     res.json({
       message: "Login successful",
-      user: { id: user.id, name: user.name, email: user.email },
+      user: { id: user.id, name: user.name, email: user.email, age: user.age, gender: user.gender, bio: user.bio },
     });
   } catch (err) {
     console.error("❌ Login error:", err);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ✅ Profile lookup
+router.get("/profile/:id", async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id, {
+      attributes: ["id", "name", "email", "age", "gender", "bio"],
+    });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user);
+  } catch (err) {
+    console.error("❌ Profile lookup error:", err);
+    res.status(500).json({ error: "Failed to load profile" });
   }
 });
 
